@@ -24,7 +24,7 @@
 -- myButLast (x:xs) = if y == 2 then x else myButLast xs 
 -- 	where
 		-- y = length (x:xs)
-		
+
 -- school sol:
 -- myButLast :: [a] -> a
 -- myButLast = last . init
@@ -45,3 +45,18 @@
 -- My sol:
 
 -- school sol:
+
+
+
+-- tell :: (Int a) => [a] -> a
+-- tell [] = 0
+-- tell (x:[]) = x
+-- tell (x:y:[]) = x
+-- tell (x:y:_) = x
+
+tell :: (Int a) => [a] -> Int
+tell [] = 0
+tell (x:[]) = 1
+tell (x:y:[]) = 2
+tell (x:y:_) = 3
+

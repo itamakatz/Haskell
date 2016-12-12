@@ -36,7 +36,7 @@ enter -- :l baby
 /=, ++, :, !!, <=, >=, NULL, ELEM, =>, succ, head, tail,
 last, init, length, reverce, take, drop, maximum, minimum,
 sum, product, cycle, repeat, replicate, odd, zip, compare,
-show, read, pred, fromIntegral
+show, read, pred, fromIntegral, error
 
 ============================================================
 ======================== FUNCTIONS =========================
@@ -60,7 +60,7 @@ cycle -- takes a list and cycles it into an infinite list
 repeat -- takes an element and produces an infinite list 
 replicate -- like "take n (repeat m)" but not infinate
 zip -- create kist of pair tuples from two diffrent lists 
-
+error -- takes a String and generates a runtime error      **************** 
 ============================================================
 ========================== LISTS ===========================
 ============================================================
@@ -72,6 +72,8 @@ zip -- create kist of pair tuples from two diffrent lists
 	you cant do [20..1]. you have to do [20,19..1]
 [13,26..] -- define an infenet list
 [x*2 | x <- [1..10]] -- list comprehension
+(x:xs) -- when we bind variables like this, they must be 
+	surrounded by () 
 ----------------------------------------------------------
 
 ============================================================
@@ -138,6 +140,13 @@ fromIntegral -- takes an Integral and returns a Num
 ============================================================
 ========================== SYNTAX ==========================
 ============================================================
+
+pattern matching -- its basicaly overiding functions in c. it 
+	will be overidden from top to bottom
+non-exhaustive patterns -- error denoting that thefunction 
+	did not cover the posibility of getting an item in its
+	pattern maching
+
 
 ============================================================
 ========================= GENERAL ==========================
