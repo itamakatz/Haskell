@@ -7,6 +7,9 @@
 -- myLast :: [a] -> a
 -- myLast (_:[xx]) = xx
 
+-- myLast :: [a] -> a
+-- myLast (xs ++ [x]) = x
+
 -- school sol:
 -- myLast :: [a] -> a
 -- myLast [] = error "No end for empty lists!"
@@ -54,9 +57,18 @@
 -- tell (x:y:[]) = x
 -- tell (x:y:_) = x
 
-tell :: (Int a) => [a] -> Int
-tell [] = 0
-tell (x:[]) = 1
-tell (x:y:[]) = 2
-tell (x:y:_) = 3
+-- factors :: Int → [Int] 
+-- factors 
 
+
+-- solution to ch5 slide 20 :) beautiful!!!!!
+-- perfects :: Int -> [Int]
+-- perfects x = [ a | a <- [1..(x - 1)], perfect a == True]
+-- 	where perfect n = if sum ([x | x <- [1..(n - 1)], n `mod` x == 0]) == n then True else False
+
+la :: [a] -> Int -> a
+la [] n = error "blabla"
+la (x:xs) n
+	| n < 0 = error "blabla"
+	| n == 0 = x
+	| otherwise = la xs (n - 1)
