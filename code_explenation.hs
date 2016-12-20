@@ -116,3 +116,6 @@ flip' :: (a -> b -> c) -> (b -> a -> c)
 flip' f = g  
     where g x y = f y x  
 
+-- defenition of (.)
+(.) :: (b → c) → (a → b) → (a → c) 
+f . g = λx → f (g x)
