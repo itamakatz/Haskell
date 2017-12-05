@@ -9,30 +9,46 @@ import System.IO (hFlush, stdout, getLine)
 -- Tile can be of 3 states: Empty, X, or O
 data Tile = Empty| O | X
 data Player = P1 | P2 
+data Cell = R1_C1 | R1_C2 | R1_C3 | R2_C1 | R2_C2 | R2_C3 | R3_C1 | R3_C2 | R3_C3
 
 instance Show Tile where
     show Empty = " "
-    show O         = "O"
-    show X         = "X"
+    show O     = "O"
+    show X     = "X"
+
+instance Eq Tile where 
+    Empty == Empty = True 
+    _ == _ = False
 
 -- Declares Board as a series of 9 Tiles
-type Board    = (Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile)
+type Board = (Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile)
+
+num_to_cell :: (Integral a) => a -> Cell
+num_to_cell 1 = R1_C1
+num_to_cell 2 = R1_C2
+num_to_cell 3 = R1_C3
+num_to_cell 4 = R2_C1
+num_to_cell 5 = R2_C2
+num_to_cell 6 = R2_C3
+num_to_cell 7 = R3_C1
+num_to_cell 8 = R3_C2
+num_to_cell 9 = R3_C3
 
 -- emptyBoard is a Board of empty Tiles
 emptyBoard :: Board
 emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 
 -- Place marker in empty Tile
-makeMove :: Board -> Tile -> Int -> Maybe Board
-makeMove (a,b,c,d,e,f,Empty,h,i) t 1 = Just (a,b,c,d,e,f,t,h,i)
-makeMove (a,b,c,d,e,f,g,Empty,i) t 2 = Just (a,b,c,d,e,f,g,t,i)
-makeMove (a,b,c,d,e,f,g,h,Empty) t 3 = Just (a,b,c,d,e,f,g,h,t)
-makeMove (a,b,c,Empty,e,f,g,h,i) t 4 = Just (a,b,c,t,e,f,g,h,i)
-makeMove (a,b,c,d,Empty,f,g,h,i) t 5 = Just (a,b,c,d,t,f,g,h,i)
-makeMove (a,b,c,d,e,Empty,g,h,i) t 6 = Just (a,b,c,d,e,t,g,h,i)
-makeMove (Empty,b,c,d,e,f,g,h,i) t 7 = Just (t,b,c,d,e,f,g,h,i)
-makeMove (a,Empty,c,d,e,f,g,h,i) t 8 = Just (a,t,c,d,e,f,g,h,i)
-makeMove (a,b,Empty,d,e,f,g,h,i) t 9 = Just (a,b,t,d,e,f,g,h,i)
+makeMove :: Board -> Tile -> Cell -> Maybe Board
+makeMove (a,b,c,d,e,f,Empty,h,i) t R1_C1 = Just (a,b,c,d,e,f,t,h,i)
+makeMove (a,b,c,d,e,f,g,Empty,i) t R1_C2 = Just (a,b,c,d,e,f,g,t,i)
+makeMove (a,b,c,d,e,f,g,h,Empty) t R1_C3 = Just (a,b,c,d,e,f,g,h,t)
+makeMove (a,b,c,Empty,e,f,g,h,i) t R2_C1 = Just (a,b,c,t,e,f,g,h,i)
+makeMove (a,b,c,d,Empty,f,g,h,i) t R2_C2 = Just (a,b,c,d,t,f,g,h,i)
+makeMove (a,b,c,d,e,Empty,g,h,i) t R2_C3 = Just (a,b,c,d,e,t,g,h,i)
+makeMove (Empty,b,c,d,e,f,g,h,i) t R3_C1 = Just (t,b,c,d,e,f,g,h,i)
+makeMove (a,Empty,c,d,e,f,g,h,i) t R3_C2 = Just (a,t,c,d,e,f,g,h,i)
+makeMove (a,b,Empty,d,e,f,g,h,i) t R3_C3 = Just (a,b,t,d,e,f,g,h,i)
 makeMove _ _ _ = Nothing
 
 -- All winning conditions
@@ -70,95 +86,98 @@ determineTie (_,_,_,_,_,_,_,_,Empty) = False
 determineTie _= True
 
 -- returns Tile at specified Int
-returnTile :: Board -> Int -> Tile
-returnTile (a,b,c,d,e,f,g,h,i) 1 = g
-returnTile (a,b,c,d,e,f,g,h,i) 2 = h
-returnTile (a,b,c,d,e,f,g,h,i) 3 = i
-returnTile (a,b,c,d,e,f,g,h,i) 4 = d
-returnTile (a,b,c,d,e,f,g,h,i) 5 = e
-returnTile (a,b,c,d,e,f,g,h,i) 6 = f
-returnTile (a,b,c,d,e,f,g,h,i) 7 = a
-returnTile (a,b,c,d,e,f,g,h,i) 8 = b
-returnTile (a,b,c,d,e,f,g,h,i) 9 = c
+returnTile :: Board -> Cell -> Tile
+returnTile (a,b,c,d,e,f,g,h,i) R1_C1 = g
+returnTile (a,b,c,d,e,f,g,h,i) R1_C2 = h
+returnTile (a,b,c,d,e,f,g,h,i) R1_C3 = i
+returnTile (a,b,c,d,e,f,g,h,i) R2_C1 = d
+returnTile (a,b,c,d,e,f,g,h,i) R2_C2 = e
+returnTile (a,b,c,d,e,f,g,h,i) R2_C3 = f
+returnTile (a,b,c,d,e,f,g,h,i) R3_C1 = a
+returnTile (a,b,c,d,e,f,g,h,i) R3_C2 = b
+returnTile (a,b,c,d,e,f,g,h,i) R3_C3 = c
 
 -- Computer attempts to make a winning move
-chooseCompMove :: Board -> Int
-chooseCompMove (Empty,O,O,_,_,_,_,_,_) = 7
-chooseCompMove (O,Empty,O,_,_,_,_,_,_) = 8
-chooseCompMove (O,O,Empty,_,_,_,_,_,_) = 9
-chooseCompMove (_,_,_,Empty,O,O,_,_,_) = 4
-chooseCompMove (_,_,_,O,Empty,O,_,_,_) = 5
-chooseCompMove (_,_,_,O,O,Empty,_,_,_) = 6
-chooseCompMove (_,_,_,_,_,_,Empty,O,O) = 1
-chooseCompMove (_,_,_,_,_,_,O,Empty,O) = 2
-chooseCompMove (_,_,_,_,_,_,O,O,Empty) = 3
-chooseCompMove (Empty,_,_,O,_,_,O,_,_) = 7
-chooseCompMove (O,_,_,Empty,_,_,O,_,_) = 4
-chooseCompMove (O,_,_,O,_,_,Empty,_,_) = 1
-chooseCompMove (_,Empty,_,_,O,_,_,O,_) = 8
-chooseCompMove (_,O,_,_,Empty,_,_,O,_) = 5
-chooseCompMove (_,O,_,_,O,_,_,Empty,_) = 2
-chooseCompMove (_,_,Empty,_,_,O,_,_,O) = 9
-chooseCompMove (_,_,O,_,_,Empty,_,_,O) = 6
-chooseCompMove (_,_,O,_,_,O,_,_,Empty) = 3
-chooseCompMove (Empty,_,_,_,O,_,_,_,O) = 7
-chooseCompMove (O,_,_,_,Empty,_,_,_,O) = 5
-chooseCompMove (O,_,_,_,O,_,_,_,Empty) = 3
-chooseCompMove (_,_,Empty,_,O,_,O,_,_) = 9
-chooseCompMove (_,_,O,_,Empty,_,O,_,_) = 5
-chooseCompMove (_,_,O,_,O,_,Empty,_,_) = 1
+chooseCompMove :: Board -> Maybe Cell
+chooseCompMove (Empty,O,O,_,_,_,_,_,_) = Just R3_C1
+chooseCompMove (O,Empty,O,_,_,_,_,_,_) = Just R3_C2
+chooseCompMove (O,O,Empty,_,_,_,_,_,_) = Just R3_C3
+chooseCompMove (_,_,_,Empty,O,O,_,_,_) = Just R2_C1
+chooseCompMove (_,_,_,O,Empty,O,_,_,_) = Just R2_C2
+chooseCompMove (_,_,_,O,O,Empty,_,_,_) = Just R2_C3
+chooseCompMove (_,_,_,_,_,_,Empty,O,O) = Just R1_C1
+chooseCompMove (_,_,_,_,_,_,O,Empty,O) = Just R1_C2
+chooseCompMove (_,_,_,_,_,_,O,O,Empty) = Just R1_C3
+chooseCompMove (Empty,_,_,O,_,_,O,_,_) = Just R3_C1
+chooseCompMove (O,_,_,Empty,_,_,O,_,_) = Just R2_C1
+chooseCompMove (O,_,_,O,_,_,Empty,_,_) = Just R1_C1
+chooseCompMove (_,Empty,_,_,O,_,_,O,_) = Just R3_C2
+chooseCompMove (_,O,_,_,Empty,_,_,O,_) = Just R2_C2
+chooseCompMove (_,O,_,_,O,_,_,Empty,_) = Just R1_C2
+chooseCompMove (_,_,Empty,_,_,O,_,_,O) = Just R3_C3
+chooseCompMove (_,_,O,_,_,Empty,_,_,O) = Just R2_C3
+chooseCompMove (_,_,O,_,_,O,_,_,Empty) = Just R1_C3
+chooseCompMove (Empty,_,_,_,O,_,_,_,O) = Just R3_C1
+chooseCompMove (O,_,_,_,Empty,_,_,_,O) = Just R2_C2
+chooseCompMove (O,_,_,_,O,_,_,_,Empty) = Just R1_C3
+chooseCompMove (_,_,Empty,_,O,_,O,_,_) = Just R3_C3
+chooseCompMove (_,_,O,_,Empty,_,O,_,_) = Just R2_C2
+chooseCompMove (_,_,O,_,O,_,Empty,_,_) = Just R1_C1
 
 -- Computer attempts to block off the player's winning move
-chooseCompMove (Empty,X,X,_,_,_,_,_,_) = 7
-chooseCompMove (X,Empty,X,_,_,_,_,_,_) = 8
-chooseCompMove (X,X,Empty,_,_,_,_,_,_) = 9
-chooseCompMove (_,_,_,Empty,X,X,_,_,_) = 4
-chooseCompMove (_,_,_,X,Empty,X,_,_,_) = 5
-chooseCompMove (_,_,_,X,X,Empty,_,_,_) = 6
-chooseCompMove (_,_,_,_,_,_,Empty,X,X) = 1
-chooseCompMove (_,_,_,_,_,_,X,Empty,X) = 2
-chooseCompMove (_,_,_,_,_,_,X,X,Empty) = 3
-chooseCompMove (Empty,_,_,X,_,_,X,_,_) = 7
-chooseCompMove (X,_,_,Empty,_,_,X,_,_) = 4
-chooseCompMove (X,_,_,X,_,_,Empty,_,_) = 1
-chooseCompMove (_,Empty,_,_,X,_,_,X,_) = 8
-chooseCompMove (_,X,_,_,Empty,_,_,X,_) = 5
-chooseCompMove (_,X,_,_,X,_,_,Empty,_) = 2
-chooseCompMove (_,_,Empty,_,_,X,_,_,X) = 9
-chooseCompMove (_,_,X,_,_,Empty,_,_,X) = 6
-chooseCompMove (_,_,X,_,_,X,_,_,Empty) = 3
-chooseCompMove (Empty,_,_,_,X,_,_,_,X) = 7
-chooseCompMove (X,_,_,_,Empty,_,_,_,X) = 5
-chooseCompMove (X,_,_,_,X,_,_,_,Empty) = 3
-chooseCompMove (_,_,Empty,_,X,_,X,_,_) = 9
-chooseCompMove (_,_,X,_,Empty,_,X,_,_) = 5
-chooseCompMove (_,_,X,_,X,_,Empty,_,_) = 1
+chooseCompMove (Empty,X,X,_,_,_,_,_,_) = Just R3_C1
+chooseCompMove (X,Empty,X,_,_,_,_,_,_) = Just R3_C2
+chooseCompMove (X,X,Empty,_,_,_,_,_,_) = Just R3_C3
+chooseCompMove (_,_,_,Empty,X,X,_,_,_) = Just R2_C1
+chooseCompMove (_,_,_,X,Empty,X,_,_,_) = Just R2_C2
+chooseCompMove (_,_,_,X,X,Empty,_,_,_) = Just R2_C3
+chooseCompMove (_,_,_,_,_,_,Empty,X,X) = Just R1_C1
+chooseCompMove (_,_,_,_,_,_,X,Empty,X) = Just R1_C2
+chooseCompMove (_,_,_,_,_,_,X,X,Empty) = Just R1_C3
+chooseCompMove (Empty,_,_,X,_,_,X,_,_) = Just R3_C1
+chooseCompMove (X,_,_,Empty,_,_,X,_,_) = Just R2_C1
+chooseCompMove (X,_,_,X,_,_,Empty,_,_) = Just R1_C1
+chooseCompMove (_,Empty,_,_,X,_,_,X,_) = Just R3_C2
+chooseCompMove (_,X,_,_,Empty,_,_,X,_) = Just R2_C2
+chooseCompMove (_,X,_,_,X,_,_,Empty,_) = Just R1_C2
+chooseCompMove (_,_,Empty,_,_,X,_,_,X) = Just R3_C3
+chooseCompMove (_,_,X,_,_,Empty,_,_,X) = Just R2_C3
+chooseCompMove (_,_,X,_,_,X,_,_,Empty) = Just R1_C3
+chooseCompMove (Empty,_,_,_,X,_,_,_,X) = Just R3_C1
+chooseCompMove (X,_,_,_,Empty,_,_,_,X) = Just R2_C2
+chooseCompMove (X,_,_,_,X,_,_,_,Empty) = Just R1_C3
+chooseCompMove (_,_,Empty,_,X,_,X,_,_) = Just R3_C3
+chooseCompMove (_,_,X,_,Empty,_,X,_,_) = Just R2_C2
+chooseCompMove (_,_,X,_,X,_,Empty,_,_) = Just R1_C1
 
-chooseCompMove (_,_,_,_,_,_,_,_,_) = 0
+chooseCompMove (_,_,_,_,_,_,_,_,_) = Nothing
 
 -- Determines the most optimal move for the computer
 -- attempts to win/ block off player's winning move 
 -- or else it randomly places a mark in an empty tile
 computerMove :: Board -> IO (Board)
 computerMove b = do
-    let pos = chooseCompMove b
-    if pos /= 0 
-        then do
+    case chooseCompMove b of
+        Just pos -> do
             let (Just b') = makeMove b O pos
             return b'
-        else do
-            pos1 <- randomEmptyTile b
+        Nothing -> do
+            let pos1 = randomEmptyTile b
             let (Just b') = makeMove b O pos1
             return b'
 
 -- helper function for computerMove
-randomEmptyTile :: Board -> IO Int
+randomEmptyTile :: Board -> Cell
 randomEmptyTile b = do
-    pos <- randomRIO (1,9) 
+    posIO <- randomRIO (1,9) 
+    let pos = num_to_cell (read posIO)
+    -- let t = returnTile b (num_to_cell (read pos))
     let t = returnTile b pos
-    case t of
-        Empty -> return pos
-        _         -> randomEmptyTile b
+    if t == Empty
+        then do
+            return pos
+        else
+            randomEmptyTile b
 
 -- Shows the player the current board state
 showBoard :: Board -> IO ()
@@ -182,10 +201,14 @@ prompt s = do
     hFlush stdout
     getLine
 
-startGame :: Board -> IO
+
+
+
+startGame :: Board -> IO ()
 startGame a1 = do
     playermove <- prompt "Choose a number from 1 to 9: "
-    let newboardstate = makeMove a1 X (read playermove)
+    let get_cell = num_to_cell (read playermove)
+    let newboardstate = makeMove a1 X get_cell
     case newboardstate of
         Nothing -> do
                     putStrLn "Not a valid move."
