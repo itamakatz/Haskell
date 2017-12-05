@@ -1,29 +1,24 @@
--- Tic Tac Toe Haskell program project for
--- William Wang (17237158)
--- Yue (Johnson) Sun  (39828116)
--- Eric Chi Xiang Chou (26505140)
+import System.Random
+import System.IO
 
-import System.Random (randomRIO)
-import System.IO (hFlush, stdout, getLine)
+data Symbol = X | O | Empty
 
--- Tile can be of 3 states: Empty, X, or O
-data Tile = Empty| O | X
+instance Show Symbol where
+    show X = "X"
+    show O = "O"
+    show Empty = " "
+
+type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
+
 data Player = P1 | P2 
 
-instance Show Tile where
-    show Empty = " "
-    show O         = "O"
-    show X         = "X"
 
--- Declares Board as a series of 9 Tiles
-type Board    = (Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile, Tile)
-
--- emptyBoard is a Board of empty Tiles
+-- Building an empty board
 emptyBoard :: Board
 emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 
--- Place marker in empty Tile
-makeMove :: Board -> Tile -> Int -> Maybe Board
+-- Place marker in empty Symbol
+makeMove :: Board -> Symbol -> Int -> Maybe Board
 makeMove (a,b,c,d,e,f,Empty,h,i) t 1 = Just (a,b,c,d,e,f,t,h,i)
 makeMove (a,b,c,d,e,f,g,Empty,i) t 2 = Just (a,b,c,d,e,f,g,t,i)
 makeMove (a,b,c,d,e,f,g,h,Empty) t 3 = Just (a,b,c,d,e,f,g,h,t)
@@ -69,17 +64,17 @@ determineTie (_,_,_,_,_,_,_,Empty,_) = False
 determineTie (_,_,_,_,_,_,_,_,Empty) = False
 determineTie _= True
 
--- returns Tile at specified Int
-returnTile :: Board -> Int -> Tile
-returnTile (a,b,c,d,e,f,g,h,i) 1 = g
-returnTile (a,b,c,d,e,f,g,h,i) 2 = h
-returnTile (a,b,c,d,e,f,g,h,i) 3 = i
-returnTile (a,b,c,d,e,f,g,h,i) 4 = d
-returnTile (a,b,c,d,e,f,g,h,i) 5 = e
-returnTile (a,b,c,d,e,f,g,h,i) 6 = f
-returnTile (a,b,c,d,e,f,g,h,i) 7 = a
-returnTile (a,b,c,d,e,f,g,h,i) 8 = b
-returnTile (a,b,c,d,e,f,g,h,i) 9 = c
+-- returns Symbol at specified Int
+returnSymbol :: Board -> Int -> Symbol
+returnSymbol (a,b,c,d,e,f,g,h,i) 1 = g
+returnSymbol (a,b,c,d,e,f,g,h,i) 2 = h
+returnSymbol (a,b,c,d,e,f,g,h,i) 3 = i
+returnSymbol (a,b,c,d,e,f,g,h,i) 4 = d
+returnSymbol (a,b,c,d,e,f,g,h,i) 5 = e
+returnSymbol (a,b,c,d,e,f,g,h,i) 6 = f
+returnSymbol (a,b,c,d,e,f,g,h,i) 7 = a
+returnSymbol (a,b,c,d,e,f,g,h,i) 8 = b
+returnSymbol (a,b,c,d,e,f,g,h,i) 9 = c
 
 -- Computer attempts to make a winning move
 chooseCompMove :: Board -> Int
@@ -138,7 +133,7 @@ chooseCompMove (_,_,_,_,_,_,_,_,_) = 0
 
 -- Determines the most optimal move for the computer
 -- attempts to win/ block off player's winning move 
--- or else it randomly places a mark in an empty tile
+-- or else it randomly places a mark in an empty Symbol
 computerMove :: Board -> IO (Board)
 computerMove b = do
     let pos = chooseCompMove b
@@ -147,18 +142,18 @@ computerMove b = do
             let (Just b') = makeMove b O pos
             return b'
         else do
-            pos1 <- randomEmptyTile b
+            pos1 <- randomEmptySymbol b
             let (Just b') = makeMove b O pos1
             return b'
 
 -- helper function for computerMove
-randomEmptyTile :: Board -> IO Int
-randomEmptyTile b = do
+randomEmptySymbol :: Board -> IO Int
+randomEmptySymbol b = do
     pos <- randomRIO (1,9) 
-    let t = returnTile b pos
+    let t = returnSymbol b pos
     case t of
         Empty -> return pos
-        _         -> randomEmptyTile b
+        _         -> randomEmptySymbol b
 
 -- Shows the player the current board state
 showBoard :: Board -> IO ()
@@ -168,8 +163,8 @@ showBoard (a,b,c,d,e,f,g,h,i) = do
     putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
 
 -- Shows the player which squares correspond with which numbers
-showTiles :: IO ()
-showTiles  = do
+showSymbols :: IO ()
+showSymbols  = do
     putStrLn "|7|8|9|"
     putStrLn "|4|5|6|"
     putStrLn "|1|2|3|"
@@ -178,18 +173,18 @@ showTiles  = do
 
 prompt :: String -> IO String
 prompt s = do
-    putStr s
+    putStrLn s
     hFlush stdout
     getLine
 
-startGame :: Board -> IO
-startGame a1 = do
+startGameForOne :: Board -> IO ()
+startGameForOne a1 = do
     playermove <- prompt "Choose a number from 1 to 9: "
     let newboardstate = makeMove a1 X (read playermove)
     case newboardstate of
         Nothing -> do
                     putStrLn "Not a valid move."
-                    startGame a1
+                    startGameForOne a1
         Just b2 ->
                     case determineWin b2 of
                         Just P1 -> do
@@ -209,12 +204,66 @@ startGame a1 = do
                                                                             putStrLn "No winner"
                                                                             showBoard c3
                                                                         else
-                                                                            startGame c3
+                                                                            startGameForOne c3
+
+player2Move :: Board -> IO ()
+player2Move a2 = do
+    playermove <- prompt " Player 2 - Choose a number from 1 to 9: "
+    let newboardstate2 = makeMove a2 O (read playermove)
+    case newboardstate2 of
+        Nothing -> do
+                    putStrLn "Not a valid move."
+                    player2Move a2
+        Just b22 -> do
+                    showBoard b22
+                    case determineWin b22 of
+                        Just P2 -> do
+                                    putStrLn "Player 2 wins"
+                                    -- showBoard b22
+                        _            -> if determineTie b22 
+                                            then do
+                                                putStrLn "No winner"
+                                                -- showBoard b22
+                                            else
+                                                startGameForTwo b22
+
+
+startGameForTwo :: Board -> IO ()
+startGameForTwo a1 = do
+    playermove <- prompt " Player 1 - Choose a number from 1 to 9: "
+    let newboardstate = makeMove a1 X (read playermove)
+    case newboardstate of
+        Nothing -> do
+                    putStrLn "Not a valid move."
+                    startGameForTwo a1
+        Just b2 -> do
+                    showBoard b2
+                    case determineWin b2 of
+                        Just P1 -> do
+                                    putStrLn "Player 1 wins"
+                                    -- showBoard b2
+                        _            -> if determineTie b2 
+                                            then do
+                                                putStrLn "No winner"
+                                                -- showBoard b2
+                                            else do
+                                                player2Move b2
+                                              
 
 main = do
-    putStrLn "Welcome to Tic Tac Toe Haskell!"
-    putStrLn "Please indicate where you would like to place your next move"
-    putStrLn "This is the game board"
-    showTiles
-    showBoard emptyBoard
-    startGame emptyBoard
+    putStrLn "Tic Tac Toe"
+    playermove <- prompt "Choose 1 for two players, or 2 for player Vs computer"
+    case (read playermove) of
+        1 -> do
+            putStrLn "You have chosen two players"
+            showSymbols
+            showBoard emptyBoard
+            startGameForTwo emptyBoard
+        2 -> do
+            putStrLn "You have chosen to play against the computer"
+            showSymbols
+            showBoard emptyBoard
+            startGameForOne emptyBoard
+
+
+    
