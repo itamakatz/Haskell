@@ -1,5 +1,5 @@
-import System.Random
-import System.IO
+import System.Random (randomRIO)
+import System.IO 
 
 data Symbol = X | O | Empty
 
@@ -12,23 +12,38 @@ type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Sy
 
 data Player = P1 | P2 
 
-
 -- Building an empty board
 emptyBoard :: Board
 emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 
+getAtIndex :: Board -> Int -> Symbol
+getAtIndex (x,_,_,_,_,_,_,_,_) 7 = x 
+getAtIndex (_,x,_,_,_,_,_,_,_) 8 = x 
+getAtIndex (_,_,x,_,_,_,_,_,_) 9 = x 
+getAtIndex (_,_,_,x,_,_,_,_,_) 4 = x 
+getAtIndex (_,_,_,_,x,_,_,_,_) 5 = x 
+getAtIndex (_,_,_,_,_,x,_,_,_) 6 = x 
+getAtIndex (_,_,_,_,_,_,x,_,_) 1 = x 
+getAtIndex (_,_,_,_,_,_,_,x,_) 2 = x 
+getAtIndex (_,_,_,_,_,_,_,_,x) 3 = x 
+
+setAtIndex :: Board -> Symbol -> Int -> Board
+setAtIndex (_,b,c,d,e,f,g,h,i) symbol 7 = (symbol,b,c,d,e,f,g,h,i)
+setAtIndex (a,_,c,d,e,f,g,h,i) symbol 8 = (a,symbol,c,d,e,f,g,h,i)
+setAtIndex (a,b,_,d,e,f,g,h,i) symbol 9 = (a,b,symbol,d,e,f,g,h,i)
+setAtIndex (a,b,c,_,e,f,g,h,i) symbol 4 = (a,b,c,symbol,e,f,g,h,i)
+setAtIndex (a,b,c,d,_,f,g,h,i) symbol 5 = (a,b,c,d,symbol,f,g,h,i)
+setAtIndex (a,b,c,d,e,_,g,h,i) symbol 6 = (a,b,c,d,e,symbol,g,h,i)
+setAtIndex (a,b,c,d,e,f,_,h,i) symbol 1 = (a,b,c,d,e,f,symbol,h,i)
+setAtIndex (a,b,c,d,e,f,g,_,i) symbol 2 = (a,b,c,d,e,f,g,symbol,i)
+setAtIndex (a,b,c,d,e,f,g,h,_) symbol 3 = (a,b,c,d,e,f,g,h,symbol)
+ 
 -- Place marker in empty Symbol
 makeMove :: Board -> Symbol -> Int -> Maybe Board
-makeMove (a,b,c,d,e,f,Empty,h,i) t 1 = Just (a,b,c,d,e,f,t,h,i)
-makeMove (a,b,c,d,e,f,g,Empty,i) t 2 = Just (a,b,c,d,e,f,g,t,i)
-makeMove (a,b,c,d,e,f,g,h,Empty) t 3 = Just (a,b,c,d,e,f,g,h,t)
-makeMove (a,b,c,Empty,e,f,g,h,i) t 4 = Just (a,b,c,t,e,f,g,h,i)
-makeMove (a,b,c,d,Empty,f,g,h,i) t 5 = Just (a,b,c,d,t,f,g,h,i)
-makeMove (a,b,c,d,e,Empty,g,h,i) t 6 = Just (a,b,c,d,e,t,g,h,i)
-makeMove (Empty,b,c,d,e,f,g,h,i) t 7 = Just (t,b,c,d,e,f,g,h,i)
-makeMove (a,Empty,c,d,e,f,g,h,i) t 8 = Just (a,t,c,d,e,f,g,h,i)
-makeMove (a,b,Empty,d,e,f,g,h,i) t 9 = Just (a,b,t,d,e,f,g,h,i)
-makeMove _ _ _ = Nothing
+makeMove board symbol index =
+    case getAtIndex board index of 
+        Empty -> Just $ setAtIndex board symbol index
+        _ -> Nothing
 
 -- All winning conditions
 determineWin :: Board -> Maybe Player
@@ -149,7 +164,7 @@ computerMove b = do
 -- helper function for computerMove
 randomEmptySymbol :: Board -> IO Int
 randomEmptySymbol b = do
-    pos <- randomRIO (1,9) 
+    pos <- randomRIO(1,9) 
     let t = returnSymbol b pos
     case t of
         Empty -> return pos
