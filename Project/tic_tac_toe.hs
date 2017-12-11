@@ -8,6 +8,16 @@ instance Show Symbol where
     show O = "O"
     show Empty = " "
 
+(&&&&) :: Symbol -> Symbol -> Bool
+(&&&&) Empty _ = False
+(&&&&) _ Empty = False
+(&&&&) _ _ = True
+
+(&&&) :: Symbol -> Bool -> Bool
+(&&&) Empty _ = False
+(&&&) _ False = False
+(&&&) _ _ = True
+
 type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
 
 data Player = P1 | P2 
@@ -68,16 +78,7 @@ determineWin _ = Nothing
 
 -- Checks for no winner/tie
 determineTie :: Board -> Bool
-determineTie (Empty,_,_,_,_,_,_,_,_) = False
-determineTie (_,Empty,_,_,_,_,_,_,_) = False
-determineTie (_,_,Empty,_,_,_,_,_,_) = False
-determineTie (_,_,_,Empty,_,_,_,_,_) = False
-determineTie (_,_,_,_,Empty,_,_,_,_) = False
-determineTie (_,_,_,_,_,Empty,_,_,_) = False
-determineTie (_,_,_,_,_,_,Empty,_,_) = False
-determineTie (_,_,_,_,_,_,_,Empty,_) = False
-determineTie (_,_,_,_,_,_,_,_,Empty) = False
-determineTie _= True
+determineTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
 
 -- returns Symbol at specified Int
 returnSymbol :: Board -> Int -> Symbol
