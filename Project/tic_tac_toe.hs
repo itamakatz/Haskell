@@ -21,7 +21,11 @@ instance Show Symbol where
 
 type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
 
-data Player = P1 | P2 
+-- data Player = P1 | P2 
+
+changePlayer :: Symbol -> Symbol
+changePlayer X = O
+changePlayer O = X
 
 -- Building an empty board
 emptyBoard :: Board
@@ -57,23 +61,23 @@ makeMove board symbol index =
         _ -> Nothing
 
 -- All winning conditions
-determineWin :: Board -> Maybe Player
-determineWin (O,O,O,_,_,_,_,_,_) = Just P2
-determineWin (_,_,_,O,O,O,_,_,_) = Just P2
-determineWin (_,_,_,_,_,_,O,O,O) = Just P2
-determineWin (O,_,_,O,_,_,O,_,_) = Just P2
-determineWin (_,O,_,_,O,_,_,O,_) = Just P2
-determineWin (_,_,O,_,_,O,_,_,O) = Just P2
-determineWin (O,_,_,_,O,_,_,_,O) = Just P2
-determineWin (_,_,O,_,O,_,O,_,_) = Just P2
-determineWin (X,X,X,_,_,_,_,_,_) = Just P1
-determineWin (_,_,_,X,X,X,_,_,_) = Just P1
-determineWin (_,_,_,_,_,_,X,X,X) = Just P1
-determineWin (X,_,_,X,_,_,X,_,_) = Just P1
-determineWin (_,X,_,_,X,_,_,X,_) = Just P1
-determineWin (_,_,X,_,_,X,_,_,X) = Just P1
-determineWin (X,_,_,_,X,_,_,_,X) = Just P1
-determineWin (_,_,X,_,X,_,X,_,_) = Just P1
+determineWin :: Board -> Maybe Symbol
+determineWin (O,O,O,_,_,_,_,_,_) = Just O
+determineWin (_,_,_,O,O,O,_,_,_) = Just O
+determineWin (_,_,_,_,_,_,O,O,O) = Just O
+determineWin (O,_,_,O,_,_,O,_,_) = Just O
+determineWin (_,O,_,_,O,_,_,O,_) = Just O
+determineWin (_,_,O,_,_,O,_,_,O) = Just O
+determineWin (O,_,_,_,O,_,_,_,O) = Just O
+determineWin (_,_,O,_,O,_,O,_,_) = Just O
+determineWin (X,X,X,_,_,_,_,_,_) = Just X
+determineWin (_,_,_,X,X,X,_,_,_) = Just X
+determineWin (_,_,_,_,_,_,X,X,X) = Just X
+determineWin (X,_,_,X,_,_,X,_,_) = Just X
+determineWin (_,X,_,_,X,_,_,X,_) = Just X
+determineWin (_,_,X,_,_,X,_,_,X) = Just X
+determineWin (X,_,_,_,X,_,_,_,X) = Just X
+determineWin (_,_,X,_,X,_,X,_,_) = Just X
 
 determineWin _ = Nothing
 
@@ -146,29 +150,18 @@ computerMove b =
             pos1 <- randomEmptySymbol b
             let (Just b') = makeMove b O pos1
             return b'
-        _ -> do
+        _       -> do
             let (Just b') = makeMove b O $ head $ catMaybes [pos]
             return b'
     where pos = chooseCompMove b
-    -- do
-    -- let pos = chooseCompMove b
-    -- if pos /= 0 
-    --     then do
-    --         let (Just b') = makeMove b O pos
-    --         return b'
-    --     else do
-    --         pos1 <- randomEmptySymbol b
-    --         let (Just b') = makeMove b O pos1
-    --         return b'
 
 -- helper function for computerMove
 randomEmptySymbol :: Board -> IO Int
 randomEmptySymbol b = do
     pos <- randomRIO(1,9) 
-    let t = getAtIndex b pos
-    case t of
+    case getAtIndex b pos of
         Empty -> return pos
-        _         -> randomEmptySymbol b
+        _     -> randomEmptySymbol b
 
 -- Shows the player the current board state
 showBoard :: Board -> IO ()
@@ -176,15 +169,6 @@ showBoard (a,b,c,d,e,f,g,h,i) = do
     putStrLn ("|" ++ show a ++ "|" ++ show b ++ "|" ++ show c ++ "|")
     putStrLn ("|" ++ show d ++ "|" ++ show e ++ "|" ++ show f ++ "|")
     putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
-
--- Shows the player which squares correspond with which numbers
-showSymbols :: IO ()
-showSymbols  = do
-    putStrLn "|7|8|9|"
-    putStrLn "|4|5|6|"
-    putStrLn "|1|2|3|"
-    putStrLn ""
-
 
 prompt :: String -> IO String
 prompt s = do
@@ -202,7 +186,7 @@ startGameForOne a1 = do
                     startGameForOne a1
         Just b2 ->
                     case determineWin b2 of
-                        Just P1 -> do
+                        Just X -> do
                                     putStrLn "Player win"
                                     showBoard b2
                         _            -> if determineTie b2 
@@ -213,7 +197,7 @@ startGameForOne a1 = do
                                                 c3 <- computerMove b2
                                                 showBoard c3
                                                 case determineWin c3 of
-                                                    Just P2 -> putStrLn "Computer win"
+                                                    Just O -> putStrLn "Computer win"
                                                     _            -> if determineTie c3 
                                                                         then do
                                                                             putStrLn "No winner"
@@ -221,49 +205,33 @@ startGameForOne a1 = do
                                                                         else
                                                                             startGameForOne c3
 
-player2Move :: Board -> IO ()
-player2Move a2 = do
-    playermove <- prompt " Player 2 - Choose a number from 1 to 9: "
-    let newboardstate2 = makeMove a2 O (read playermove)
-    case newboardstate2 of
-        Nothing -> do
-                    putStrLn "Not a valid move."
-                    player2Move a2
-        Just b22 -> do
-                    showBoard b22
-                    case determineWin b22 of
-                        Just P2 -> do
-                                    putStrLn "Player 2 wins"
-                                    -- showBoard b22
-                        _            -> if determineTie b22 
-                                            then do
-                                                putStrLn "No winner"
-                                                -- showBoard b22
-                                            else
-                                                startGameForTwo b22
-
-
-startGameForTwo :: Board -> IO ()
-startGameForTwo a1 = do
+startGameForTwo :: Board -> Symbol -> IO ()
+startGameForTwo a1 symbol = do
     playermove <- prompt " Player 1 - Choose a number from 1 to 9: "
-    let newboardstate = makeMove a1 X (read playermove)
+    let newboardstate = makeMove a1 symbol (read playermove)
     case newboardstate of
         Nothing -> do
-                    putStrLn "Not a valid move."
-                    startGameForTwo a1
+            putStrLn "Not a valid move."
+            startGameForTwo a1 symbol
         Just b2 -> do
-                    showBoard b2
-                    case determineWin b2 of
-                        Just P1 -> do
-                                    putStrLn "Player 1 wins"
-                                    -- showBoard b2
-                        _            -> if determineTie b2 
-                                            then do
-                                                putStrLn "No winner"
-                                                -- showBoard b2
-                                            else do
-                                                player2Move b2
-                                              
+            showBoard b2
+            case determineWin b2 of
+                Just X -> do
+                    putStrLn "Player 1 wins"    
+                Just O -> do
+                    putStrLn "Player 2 wins"
+                _      -> if determineTie b2 
+                            then do
+                                putStrLn "No winner"
+                            else do
+                                startGameForTwo b2 $ changePlayer symbol
+
+
+
+welcome :: IO()                                   
+welcome = do
+    putStrLn "|7|8|9| \n|4|5|6|\n|1|2|3|\n"
+    showBoard emptyBoard
 
 main = do
     putStrLn "Tic Tac Toe"
@@ -271,13 +239,11 @@ main = do
     case (read playermove) of
         1 -> do
             putStrLn "You have chosen two players"
-            showSymbols
-            showBoard emptyBoard
-            startGameForTwo emptyBoard
+            welcome
+            startGameForTwo emptyBoard X
         2 -> do
             putStrLn "You have chosen to play against the computer"
-            showSymbols
-            showBoard emptyBoard
+            welcome
             startGameForOne emptyBoard
 
 
