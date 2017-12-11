@@ -21,16 +21,17 @@ instance Show Symbol where
 
 type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
 
--- data Player = P1 | P2 
 
 changePlayer :: Symbol -> Symbol
 changePlayer X = O
 changePlayer O = X
 
--- Building an empty board
+
 emptyBoard :: Board
 emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 
+
+-- get symbol of the board for a given index
 getAtIndex :: Board -> Int -> Symbol
 getAtIndex (x,_,_,_,_,_,_,_,_) 7 = x 
 getAtIndex (_,x,_,_,_,_,_,_,_) 8 = x 
@@ -42,6 +43,8 @@ getAtIndex (_,_,_,_,_,_,x,_,_) 1 = x
 getAtIndex (_,_,_,_,_,_,_,x,_) 2 = x 
 getAtIndex (_,_,_,_,_,_,_,_,x) 3 = x 
 
+
+-- set symbol in the board for a given index
 setAtIndex :: Board -> Symbol -> Int -> Board
 setAtIndex (_,b,c,d,e,f,g,h,i) symbol 7 = (symbol,b,c,d,e,f,g,h,i)
 setAtIndex (a,_,c,d,e,f,g,h,i) symbol 8 = (a,symbol,c,d,e,f,g,h,i)
@@ -53,198 +56,199 @@ setAtIndex (a,b,c,d,e,f,_,h,i) symbol 1 = (a,b,c,d,e,f,symbol,h,i)
 setAtIndex (a,b,c,d,e,f,g,_,i) symbol 2 = (a,b,c,d,e,f,g,symbol,i)
 setAtIndex (a,b,c,d,e,f,g,h,_) symbol 3 = (a,b,c,d,e,f,g,h,symbol)
  
--- Place marker in empty Symbol
+
+-- update board due to a player move
 makeMove :: Board -> Symbol -> Int -> Maybe Board
 makeMove board symbol index =
     case getAtIndex board index of 
         Empty -> Just $ setAtIndex board symbol index
         _ -> Nothing
 
--- All winning conditions
-determineWin :: Board -> Maybe Symbol
-determineWin (O,O,O,_,_,_,_,_,_) = Just O
-determineWin (_,_,_,O,O,O,_,_,_) = Just O
-determineWin (_,_,_,_,_,_,O,O,O) = Just O
-determineWin (O,_,_,O,_,_,O,_,_) = Just O
-determineWin (_,O,_,_,O,_,_,O,_) = Just O
-determineWin (_,_,O,_,_,O,_,_,O) = Just O
-determineWin (O,_,_,_,O,_,_,_,O) = Just O
-determineWin (_,_,O,_,O,_,O,_,_) = Just O
-determineWin (X,X,X,_,_,_,_,_,_) = Just X
-determineWin (_,_,_,X,X,X,_,_,_) = Just X
-determineWin (_,_,_,_,_,_,X,X,X) = Just X
-determineWin (X,_,_,X,_,_,X,_,_) = Just X
-determineWin (_,X,_,_,X,_,_,X,_) = Just X
-determineWin (_,_,X,_,_,X,_,_,X) = Just X
-determineWin (X,_,_,_,X,_,_,_,X) = Just X
-determineWin (_,_,X,_,X,_,X,_,_) = Just X
 
-determineWin _ = Nothing
+-- Check when a player wins
+checkWin :: Board -> Maybe Symbol
+checkWin (O,O,O,_,_,_,_,_,_) = Just O
+checkWin (_,_,_,O,O,O,_,_,_) = Just O
+checkWin (_,_,_,_,_,_,O,O,O) = Just O
+checkWin (O,_,_,O,_,_,O,_,_) = Just O
+checkWin (_,O,_,_,O,_,_,O,_) = Just O
+checkWin (_,_,O,_,_,O,_,_,O) = Just O
+checkWin (O,_,_,_,O,_,_,_,O) = Just O
+checkWin (_,_,O,_,O,_,O,_,_) = Just O
+checkWin (X,X,X,_,_,_,_,_,_) = Just X
+checkWin (_,_,_,X,X,X,_,_,_) = Just X
+checkWin (_,_,_,_,_,_,X,X,X) = Just X
+checkWin (X,_,_,X,_,_,X,_,_) = Just X
+checkWin (_,X,_,_,X,_,_,X,_) = Just X
+checkWin (_,_,X,_,_,X,_,_,X) = Just X
+checkWin (X,_,_,_,X,_,_,_,X) = Just X
+checkWin (_,_,X,_,X,_,X,_,_) = Just X
 
--- Checks for no winner/tie
-determineTie :: Board -> Bool
-determineTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
+checkWin _ = Nothing
+
+-- Checks for a tie
+isTie :: Board -> Bool
+isTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
+
 
 -- Computer attempts to make a winning move
-chooseCompMove :: Board -> Maybe Int
-chooseCompMove (Empty,O,O,_,_,_,_,_,_) = Just 7
-chooseCompMove (O,Empty,O,_,_,_,_,_,_) = Just 8
-chooseCompMove (O,O,Empty,_,_,_,_,_,_) = Just 9
-chooseCompMove (_,_,_,Empty,O,O,_,_,_) = Just 4
-chooseCompMove (_,_,_,O,Empty,O,_,_,_) = Just 5
-chooseCompMove (_,_,_,O,O,Empty,_,_,_) = Just 6
-chooseCompMove (_,_,_,_,_,_,Empty,O,O) = Just 1
-chooseCompMove (_,_,_,_,_,_,O,Empty,O) = Just 2
-chooseCompMove (_,_,_,_,_,_,O,O,Empty) = Just 3
-chooseCompMove (Empty,_,_,O,_,_,O,_,_) = Just 7
-chooseCompMove (O,_,_,Empty,_,_,O,_,_) = Just 4
-chooseCompMove (O,_,_,O,_,_,Empty,_,_) = Just 1
-chooseCompMove (_,Empty,_,_,O,_,_,O,_) = Just 8
-chooseCompMove (_,O,_,_,Empty,_,_,O,_) = Just 5
-chooseCompMove (_,O,_,_,O,_,_,Empty,_) = Just 2
-chooseCompMove (_,_,Empty,_,_,O,_,_,O) = Just 9
-chooseCompMove (_,_,O,_,_,Empty,_,_,O) = Just 6
-chooseCompMove (_,_,O,_,_,O,_,_,Empty) = Just 3
-chooseCompMove (Empty,_,_,_,O,_,_,_,O) = Just 7
-chooseCompMove (O,_,_,_,Empty,_,_,_,O) = Just 5
-chooseCompMove (O,_,_,_,O,_,_,_,Empty) = Just 3
-chooseCompMove (_,_,Empty,_,O,_,O,_,_) = Just 9
-chooseCompMove (_,_,O,_,Empty,_,O,_,_) = Just 5
-chooseCompMove (_,_,O,_,O,_,Empty,_,_) = Just 1
+deterministicMove :: Board -> Maybe Int
+deterministicMove (Empty,O,O,_,_,_,_,_,_) = Just 7
+deterministicMove (O,Empty,O,_,_,_,_,_,_) = Just 8
+deterministicMove (O,O,Empty,_,_,_,_,_,_) = Just 9
+deterministicMove (_,_,_,Empty,O,O,_,_,_) = Just 4
+deterministicMove (_,_,_,O,Empty,O,_,_,_) = Just 5
+deterministicMove (_,_,_,O,O,Empty,_,_,_) = Just 6
+deterministicMove (_,_,_,_,_,_,Empty,O,O) = Just 1
+deterministicMove (_,_,_,_,_,_,O,Empty,O) = Just 2
+deterministicMove (_,_,_,_,_,_,O,O,Empty) = Just 3
+deterministicMove (Empty,_,_,O,_,_,O,_,_) = Just 7
+deterministicMove (O,_,_,Empty,_,_,O,_,_) = Just 4
+deterministicMove (O,_,_,O,_,_,Empty,_,_) = Just 1
+deterministicMove (_,Empty,_,_,O,_,_,O,_) = Just 8
+deterministicMove (_,O,_,_,Empty,_,_,O,_) = Just 5
+deterministicMove (_,O,_,_,O,_,_,Empty,_) = Just 2
+deterministicMove (_,_,Empty,_,_,O,_,_,O) = Just 9
+deterministicMove (_,_,O,_,_,Empty,_,_,O) = Just 6
+deterministicMove (_,_,O,_,_,O,_,_,Empty) = Just 3
+deterministicMove (Empty,_,_,_,O,_,_,_,O) = Just 7
+deterministicMove (O,_,_,_,Empty,_,_,_,O) = Just 5
+deterministicMove (O,_,_,_,O,_,_,_,Empty) = Just 3
+deterministicMove (_,_,Empty,_,O,_,O,_,_) = Just 9
+deterministicMove (_,_,O,_,Empty,_,O,_,_) = Just 5
+deterministicMove (_,_,O,_,O,_,Empty,_,_) = Just 1
 
 -- Computer attempts to block off the player's winning move
-chooseCompMove (Empty,X,X,_,_,_,_,_,_) = Just 7
-chooseCompMove (X,Empty,X,_,_,_,_,_,_) = Just 8
-chooseCompMove (X,X,Empty,_,_,_,_,_,_) = Just 9
-chooseCompMove (_,_,_,Empty,X,X,_,_,_) = Just 4
-chooseCompMove (_,_,_,X,Empty,X,_,_,_) = Just 5
-chooseCompMove (_,_,_,X,X,Empty,_,_,_) = Just 6
-chooseCompMove (_,_,_,_,_,_,Empty,X,X) = Just 1
-chooseCompMove (_,_,_,_,_,_,X,Empty,X) = Just 2
-chooseCompMove (_,_,_,_,_,_,X,X,Empty) = Just 3
-chooseCompMove (Empty,_,_,X,_,_,X,_,_) = Just 7
-chooseCompMove (X,_,_,Empty,_,_,X,_,_) = Just 4
-chooseCompMove (X,_,_,X,_,_,Empty,_,_) = Just 1
-chooseCompMove (_,Empty,_,_,X,_,_,X,_) = Just 8
-chooseCompMove (_,X,_,_,Empty,_,_,X,_) = Just 5
-chooseCompMove (_,X,_,_,X,_,_,Empty,_) = Just 2
-chooseCompMove (_,_,Empty,_,_,X,_,_,X) = Just 9
-chooseCompMove (_,_,X,_,_,Empty,_,_,X) = Just 6
-chooseCompMove (_,_,X,_,_,X,_,_,Empty) = Just 3
-chooseCompMove (Empty,_,_,_,X,_,_,_,X) = Just 7
-chooseCompMove (X,_,_,_,Empty,_,_,_,X) = Just 5
-chooseCompMove (X,_,_,_,X,_,_,_,Empty) = Just 3
-chooseCompMove (_,_,Empty,_,X,_,X,_,_) = Just 9
-chooseCompMove (_,_,X,_,Empty,_,X,_,_) = Just 5
-chooseCompMove (_,_,X,_,X,_,Empty,_,_) = Just 1
+deterministicMove (Empty,X,X,_,_,_,_,_,_) = Just 7
+deterministicMove (X,Empty,X,_,_,_,_,_,_) = Just 8
+deterministicMove (X,X,Empty,_,_,_,_,_,_) = Just 9
+deterministicMove (_,_,_,Empty,X,X,_,_,_) = Just 4
+deterministicMove (_,_,_,X,Empty,X,_,_,_) = Just 5
+deterministicMove (_,_,_,X,X,Empty,_,_,_) = Just 6
+deterministicMove (_,_,_,_,_,_,Empty,X,X) = Just 1
+deterministicMove (_,_,_,_,_,_,X,Empty,X) = Just 2
+deterministicMove (_,_,_,_,_,_,X,X,Empty) = Just 3
+deterministicMove (Empty,_,_,X,_,_,X,_,_) = Just 7
+deterministicMove (X,_,_,Empty,_,_,X,_,_) = Just 4
+deterministicMove (X,_,_,X,_,_,Empty,_,_) = Just 1
+deterministicMove (_,Empty,_,_,X,_,_,X,_) = Just 8
+deterministicMove (_,X,_,_,Empty,_,_,X,_) = Just 5
+deterministicMove (_,X,_,_,X,_,_,Empty,_) = Just 2
+deterministicMove (_,_,Empty,_,_,X,_,_,X) = Just 9
+deterministicMove (_,_,X,_,_,Empty,_,_,X) = Just 6
+deterministicMove (_,_,X,_,_,X,_,_,Empty) = Just 3
+deterministicMove (Empty,_,_,_,X,_,_,_,X) = Just 7
+deterministicMove (X,_,_,_,Empty,_,_,_,X) = Just 5
+deterministicMove (X,_,_,_,X,_,_,_,Empty) = Just 3
+deterministicMove (_,_,Empty,_,X,_,X,_,_) = Just 9
+deterministicMove (_,_,X,_,Empty,_,X,_,_) = Just 5
+deterministicMove (_,_,X,_,X,_,Empty,_,_) = Just 1
 
-chooseCompMove (_,_,_,_,_,_,_,_,_) = Nothing
+deterministicMove (_,_,_,_,_,_,_,_,_) = Nothing
 
--- Determines the most optimal move for the computer
--- attempts to win/ block off player's winning move 
--- or else it randomly places a mark in an empty Symbol
+
+-- Makes a random move
+randomMove :: Board -> IO Int
+randomMove b = do
+    pos <- randomRIO(1,9) 
+    case getAtIndex b pos of
+        Empty -> return pos
+        _     -> randomMove b
+
+
 computerMove :: Board -> IO (Board)
 computerMove b = 
     case pos of
         Nothing -> do
-            pos1 <- randomEmptySymbol b
+            pos1 <- randomMove b
             let (Just b') = makeMove b O pos1
             return b'
         _       -> do
             let (Just b') = makeMove b O $ head $ catMaybes [pos]
             return b'
-    where pos = chooseCompMove b
+    where pos = deterministicMove b
 
--- helper function for computerMove
-randomEmptySymbol :: Board -> IO Int
-randomEmptySymbol b = do
-    pos <- randomRIO(1,9) 
-    case getAtIndex b pos of
-        Empty -> return pos
-        _     -> randomEmptySymbol b
 
--- Shows the player the current board state
 showBoard :: Board -> IO ()
 showBoard (a,b,c,d,e,f,g,h,i) = do
     putStrLn ("|" ++ show a ++ "|" ++ show b ++ "|" ++ show c ++ "|")
     putStrLn ("|" ++ show d ++ "|" ++ show e ++ "|" ++ show f ++ "|")
     putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
 
-prompt :: String -> IO String
-prompt s = do
+
+userInput :: String -> IO String
+userInput s = do
     putStrLn s
     hFlush stdout
     getLine
 
-startGameForOne :: Board -> IO ()
-startGameForOne a1 = do
-    playermove <- prompt "Choose a number from 1 to 9: "
-    let newboardstate = makeMove a1 X (read playermove)
-    case newboardstate of
-        Nothing -> do
-                    putStrLn "Not a valid move."
-                    startGameForOne a1
-        Just b2 ->
-                    case determineWin b2 of
-                        Just X -> do
-                                    putStrLn "Player win"
-                                    showBoard b2
-                        _            -> if determineTie b2 
-                                            then do
-                                                putStrLn "No winner"
-                                                showBoard b2
-                                            else do
-                                                c3 <- computerMove b2
-                                                showBoard c3
-                                                case determineWin c3 of
-                                                    Just O -> putStrLn "Computer win"
-                                                    _            -> if determineTie c3 
-                                                                        then do
-                                                                            putStrLn "No winner"
-                                                                            showBoard c3
-                                                                        else
-                                                                            startGameForOne c3
+-- computer agent
+runComputer :: Board -> IO()
+runComputer newBoard = do
+    computerBoard <- computerMove newBoard
+    showBoard computerBoard
+    case checkWin computerBoard of
+        Just O -> putStrLn "Computer win"
+        _      -> startGameForTwo computerBoard False X  
 
-startGameForTwo :: Board -> Symbol -> IO ()
-startGameForTwo a1 symbol = do
-    playermove <- prompt " Player 1 - Choose a number from 1 to 9: "
-    let newboardstate = makeMove a1 symbol (read playermove)
-    case newboardstate of
+-- Two players
+startGameForTwo :: Board -> Bool -> Symbol -> IO ()
+startGameForTwo board multiplePlayers symbol = do
+    playermove <- userInput " Player 1 - Choose a number from 1 to 9: "
+    let newBoard = makeMove board symbol $ read playermove
+    case newBoard of
         Nothing -> do
             putStrLn "Not a valid move."
-            startGameForTwo a1 symbol
-        Just b2 -> do
-            showBoard b2
-            case determineWin b2 of
+            startGameForTwo board multiplePlayers symbol
+        Just newBoard -> do
+            if multiplePlayers
+                then do
+                    showBoard newBoard
+                else do
+                    putStr ""
+            case checkWin newBoard of
                 Just X -> do
-                    putStrLn "Player 1 wins"    
+                    if multiplePlayers
+                        then do
+                            putStrLn "Player 1 wins"
+                        else do
+                            showBoard newBoard
+                            putStrLn "You win"    
                 Just O -> do
                     putStrLn "Player 2 wins"
-                _      -> if determineTie b2 
+                _      -> if isTie newBoard 
                             then do
+                                if multiplePlayers
+                                    then do
+                                        putStr ""
+                                    else do
+                                        showBoard newBoard
                                 putStrLn "No winner"
                             else do
-                                startGameForTwo b2 $ changePlayer symbol
+                                if multiplePlayers 
+                                    then do 
+                                        startGameForTwo newBoard multiplePlayers $ changePlayer symbol
+                                    else do 
+                                        runComputer newBoard
 
 
 
+-- Welcoming messages
 welcome :: IO()                                   
 welcome = do
     putStrLn "|7|8|9| \n|4|5|6|\n|1|2|3|\n"
     showBoard emptyBoard
 
+
 main = do
     putStrLn "Tic Tac Toe"
-    playermove <- prompt "Choose 1 for two players, or 2 for player Vs computer"
+    playermove <- userInput "Choose 1 for two players, or 2 for player Vs computer"
     case (read playermove) of
         1 -> do
             putStrLn "You have chosen two players"
             welcome
-            startGameForTwo emptyBoard X
+            startGameForTwo emptyBoard True X
         2 -> do
             putStrLn "You have chosen to play against the computer"
             welcome
-            startGameForOne emptyBoard
-
-
-    
+            startGameForTwo emptyBoard False X
