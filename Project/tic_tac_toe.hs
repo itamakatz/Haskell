@@ -1,5 +1,6 @@
 import System.Random (randomRIO)
 import System.IO 
+import Data.Maybe
 
 data Symbol = X | O | Empty
 
@@ -80,93 +81,91 @@ determineWin _ = Nothing
 determineTie :: Board -> Bool
 determineTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
 
--- returns Symbol at specified Int
-returnSymbol :: Board -> Int -> Symbol
-returnSymbol (a,b,c,d,e,f,g,h,i) 1 = g
-returnSymbol (a,b,c,d,e,f,g,h,i) 2 = h
-returnSymbol (a,b,c,d,e,f,g,h,i) 3 = i
-returnSymbol (a,b,c,d,e,f,g,h,i) 4 = d
-returnSymbol (a,b,c,d,e,f,g,h,i) 5 = e
-returnSymbol (a,b,c,d,e,f,g,h,i) 6 = f
-returnSymbol (a,b,c,d,e,f,g,h,i) 7 = a
-returnSymbol (a,b,c,d,e,f,g,h,i) 8 = b
-returnSymbol (a,b,c,d,e,f,g,h,i) 9 = c
-
 -- Computer attempts to make a winning move
-chooseCompMove :: Board -> Int
-chooseCompMove (Empty,O,O,_,_,_,_,_,_) = 7
-chooseCompMove (O,Empty,O,_,_,_,_,_,_) = 8
-chooseCompMove (O,O,Empty,_,_,_,_,_,_) = 9
-chooseCompMove (_,_,_,Empty,O,O,_,_,_) = 4
-chooseCompMove (_,_,_,O,Empty,O,_,_,_) = 5
-chooseCompMove (_,_,_,O,O,Empty,_,_,_) = 6
-chooseCompMove (_,_,_,_,_,_,Empty,O,O) = 1
-chooseCompMove (_,_,_,_,_,_,O,Empty,O) = 2
-chooseCompMove (_,_,_,_,_,_,O,O,Empty) = 3
-chooseCompMove (Empty,_,_,O,_,_,O,_,_) = 7
-chooseCompMove (O,_,_,Empty,_,_,O,_,_) = 4
-chooseCompMove (O,_,_,O,_,_,Empty,_,_) = 1
-chooseCompMove (_,Empty,_,_,O,_,_,O,_) = 8
-chooseCompMove (_,O,_,_,Empty,_,_,O,_) = 5
-chooseCompMove (_,O,_,_,O,_,_,Empty,_) = 2
-chooseCompMove (_,_,Empty,_,_,O,_,_,O) = 9
-chooseCompMove (_,_,O,_,_,Empty,_,_,O) = 6
-chooseCompMove (_,_,O,_,_,O,_,_,Empty) = 3
-chooseCompMove (Empty,_,_,_,O,_,_,_,O) = 7
-chooseCompMove (O,_,_,_,Empty,_,_,_,O) = 5
-chooseCompMove (O,_,_,_,O,_,_,_,Empty) = 3
-chooseCompMove (_,_,Empty,_,O,_,O,_,_) = 9
-chooseCompMove (_,_,O,_,Empty,_,O,_,_) = 5
-chooseCompMove (_,_,O,_,O,_,Empty,_,_) = 1
+chooseCompMove :: Board -> Maybe Int
+chooseCompMove (Empty,O,O,_,_,_,_,_,_) = Just 7
+chooseCompMove (O,Empty,O,_,_,_,_,_,_) = Just 8
+chooseCompMove (O,O,Empty,_,_,_,_,_,_) = Just 9
+chooseCompMove (_,_,_,Empty,O,O,_,_,_) = Just 4
+chooseCompMove (_,_,_,O,Empty,O,_,_,_) = Just 5
+chooseCompMove (_,_,_,O,O,Empty,_,_,_) = Just 6
+chooseCompMove (_,_,_,_,_,_,Empty,O,O) = Just 1
+chooseCompMove (_,_,_,_,_,_,O,Empty,O) = Just 2
+chooseCompMove (_,_,_,_,_,_,O,O,Empty) = Just 3
+chooseCompMove (Empty,_,_,O,_,_,O,_,_) = Just 7
+chooseCompMove (O,_,_,Empty,_,_,O,_,_) = Just 4
+chooseCompMove (O,_,_,O,_,_,Empty,_,_) = Just 1
+chooseCompMove (_,Empty,_,_,O,_,_,O,_) = Just 8
+chooseCompMove (_,O,_,_,Empty,_,_,O,_) = Just 5
+chooseCompMove (_,O,_,_,O,_,_,Empty,_) = Just 2
+chooseCompMove (_,_,Empty,_,_,O,_,_,O) = Just 9
+chooseCompMove (_,_,O,_,_,Empty,_,_,O) = Just 6
+chooseCompMove (_,_,O,_,_,O,_,_,Empty) = Just 3
+chooseCompMove (Empty,_,_,_,O,_,_,_,O) = Just 7
+chooseCompMove (O,_,_,_,Empty,_,_,_,O) = Just 5
+chooseCompMove (O,_,_,_,O,_,_,_,Empty) = Just 3
+chooseCompMove (_,_,Empty,_,O,_,O,_,_) = Just 9
+chooseCompMove (_,_,O,_,Empty,_,O,_,_) = Just 5
+chooseCompMove (_,_,O,_,O,_,Empty,_,_) = Just 1
 
 -- Computer attempts to block off the player's winning move
-chooseCompMove (Empty,X,X,_,_,_,_,_,_) = 7
-chooseCompMove (X,Empty,X,_,_,_,_,_,_) = 8
-chooseCompMove (X,X,Empty,_,_,_,_,_,_) = 9
-chooseCompMove (_,_,_,Empty,X,X,_,_,_) = 4
-chooseCompMove (_,_,_,X,Empty,X,_,_,_) = 5
-chooseCompMove (_,_,_,X,X,Empty,_,_,_) = 6
-chooseCompMove (_,_,_,_,_,_,Empty,X,X) = 1
-chooseCompMove (_,_,_,_,_,_,X,Empty,X) = 2
-chooseCompMove (_,_,_,_,_,_,X,X,Empty) = 3
-chooseCompMove (Empty,_,_,X,_,_,X,_,_) = 7
-chooseCompMove (X,_,_,Empty,_,_,X,_,_) = 4
-chooseCompMove (X,_,_,X,_,_,Empty,_,_) = 1
-chooseCompMove (_,Empty,_,_,X,_,_,X,_) = 8
-chooseCompMove (_,X,_,_,Empty,_,_,X,_) = 5
-chooseCompMove (_,X,_,_,X,_,_,Empty,_) = 2
-chooseCompMove (_,_,Empty,_,_,X,_,_,X) = 9
-chooseCompMove (_,_,X,_,_,Empty,_,_,X) = 6
-chooseCompMove (_,_,X,_,_,X,_,_,Empty) = 3
-chooseCompMove (Empty,_,_,_,X,_,_,_,X) = 7
-chooseCompMove (X,_,_,_,Empty,_,_,_,X) = 5
-chooseCompMove (X,_,_,_,X,_,_,_,Empty) = 3
-chooseCompMove (_,_,Empty,_,X,_,X,_,_) = 9
-chooseCompMove (_,_,X,_,Empty,_,X,_,_) = 5
-chooseCompMove (_,_,X,_,X,_,Empty,_,_) = 1
+chooseCompMove (Empty,X,X,_,_,_,_,_,_) = Just 7
+chooseCompMove (X,Empty,X,_,_,_,_,_,_) = Just 8
+chooseCompMove (X,X,Empty,_,_,_,_,_,_) = Just 9
+chooseCompMove (_,_,_,Empty,X,X,_,_,_) = Just 4
+chooseCompMove (_,_,_,X,Empty,X,_,_,_) = Just 5
+chooseCompMove (_,_,_,X,X,Empty,_,_,_) = Just 6
+chooseCompMove (_,_,_,_,_,_,Empty,X,X) = Just 1
+chooseCompMove (_,_,_,_,_,_,X,Empty,X) = Just 2
+chooseCompMove (_,_,_,_,_,_,X,X,Empty) = Just 3
+chooseCompMove (Empty,_,_,X,_,_,X,_,_) = Just 7
+chooseCompMove (X,_,_,Empty,_,_,X,_,_) = Just 4
+chooseCompMove (X,_,_,X,_,_,Empty,_,_) = Just 1
+chooseCompMove (_,Empty,_,_,X,_,_,X,_) = Just 8
+chooseCompMove (_,X,_,_,Empty,_,_,X,_) = Just 5
+chooseCompMove (_,X,_,_,X,_,_,Empty,_) = Just 2
+chooseCompMove (_,_,Empty,_,_,X,_,_,X) = Just 9
+chooseCompMove (_,_,X,_,_,Empty,_,_,X) = Just 6
+chooseCompMove (_,_,X,_,_,X,_,_,Empty) = Just 3
+chooseCompMove (Empty,_,_,_,X,_,_,_,X) = Just 7
+chooseCompMove (X,_,_,_,Empty,_,_,_,X) = Just 5
+chooseCompMove (X,_,_,_,X,_,_,_,Empty) = Just 3
+chooseCompMove (_,_,Empty,_,X,_,X,_,_) = Just 9
+chooseCompMove (_,_,X,_,Empty,_,X,_,_) = Just 5
+chooseCompMove (_,_,X,_,X,_,Empty,_,_) = Just 1
 
-chooseCompMove (_,_,_,_,_,_,_,_,_) = 0
+chooseCompMove (_,_,_,_,_,_,_,_,_) = Nothing
 
 -- Determines the most optimal move for the computer
 -- attempts to win/ block off player's winning move 
 -- or else it randomly places a mark in an empty Symbol
 computerMove :: Board -> IO (Board)
-computerMove b = do
-    let pos = chooseCompMove b
-    if pos /= 0 
-        then do
-            let (Just b') = makeMove b O pos
-            return b'
-        else do
+computerMove b = 
+    case pos of
+        Nothing -> do
             pos1 <- randomEmptySymbol b
             let (Just b') = makeMove b O pos1
             return b'
+        _ -> do
+            let (Just b') = makeMove b O $ head $ catMaybes [pos]
+            return b'
+    where pos = chooseCompMove b
+    -- do
+    -- let pos = chooseCompMove b
+    -- if pos /= 0 
+    --     then do
+    --         let (Just b') = makeMove b O pos
+    --         return b'
+    --     else do
+    --         pos1 <- randomEmptySymbol b
+    --         let (Just b') = makeMove b O pos1
+    --         return b'
 
 -- helper function for computerMove
 randomEmptySymbol :: Board -> IO Int
 randomEmptySymbol b = do
     pos <- randomRIO(1,9) 
-    let t = returnSymbol b pos
+    let t = getAtIndex b pos
     case t of
         Empty -> return pos
         _         -> randomEmptySymbol b
