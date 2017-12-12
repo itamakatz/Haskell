@@ -2,6 +2,8 @@ import System.Random (randomRIO)
 import System.IO 
 import Data.Maybe
 
+------------------------ Symbol ------------------------ 
+
 data Symbol = X | O | Empty
 
 instance Show Symbol where
@@ -9,27 +11,46 @@ instance Show Symbol where
     show O = "O"
     show Empty = " "
 
+-- bool operator for two Symbols
 (&&&&) :: Symbol -> Symbol -> Bool
 (&&&&) Empty _ = False
 (&&&&) _ Empty = False
 (&&&&) _ _ = True
 
+-- bool operator between a Symbol and a Bool
 (&&&) :: Symbol -> Bool -> Bool
 (&&&) Empty _ = False
 (&&&) _ False = False
 (&&&) _ _ = True
 
-type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
-
-
+-- switch current player (for multiplayer mode)
 changePlayer :: Symbol -> Symbol
 changePlayer X = O
 changePlayer O = X
 
+------------------------ Board ------------------------ 
+
+
+type Board = (Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol)
 
 emptyBoard :: Board
 emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 
+-- print the current state of the game
+printBoard :: Board -> IO ()
+printBoard (a,b,c,d,e,f,g,h,i) = do
+    putStrLn ("|" ++ show a ++ "|" ++ show b ++ "|" ++ show c ++ "|")
+    putStrLn ("|" ++ show d ++ "|" ++ show e ++ "|" ++ show f ++ "|")
+    putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
+
+------------------ General Functions ------------------ 
+
+-- print instructions and get users input
+userInput :: String -> IO String
+userInput s = do
+    putStrLn s
+    hFlush stdout
+    getLine
 
 -- get symbol of the board for a given index
 getAtIndex :: Board -> Int -> Symbol
@@ -57,14 +78,6 @@ setAtIndex (a,b,c,d,e,f,g,_,i) symbol 2 = (a,b,c,d,e,f,g,symbol,i)
 setAtIndex (a,b,c,d,e,f,g,h,_) symbol 3 = (a,b,c,d,e,f,g,h,symbol)
  
 
--- update board due to a player move
-makeMove :: Board -> Symbol -> Int -> Maybe Board
-makeMove board symbol index =
-    case getAtIndex board index of 
-        Empty -> Just $ setAtIndex board symbol index
-        _ -> Nothing
-
-
 -- Check when a player wins
 checkWin :: Board -> Maybe Symbol
 checkWin (O,O,O,_,_,_,_,_,_) = Just O
@@ -90,6 +103,14 @@ checkWin _ = Nothing
 isTie :: Board -> Bool
 isTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
 
+-- update board after some players move
+makeMove :: Board -> Symbol -> Int -> Maybe Board
+makeMove board symbol index =
+    case getAtIndex board index of 
+        Empty -> Just $ setAtIndex board symbol index
+        _ -> Nothing
+
+----------------- Computers Functions ----------------- 
 
 -- Computer attempts to make a winning move
 deterministicMove :: Board -> Maybe Int
@@ -146,7 +167,6 @@ deterministicMove (_,_,X,_,X,_,Empty,_,_) = Just 1
 
 deterministicMove (_,_,_,_,_,_,_,_,_) = Nothing
 
-
 -- Makes a random move
 randomMove :: Board -> IO Int
 randomMove b = do
@@ -154,7 +174,6 @@ randomMove b = do
     case getAtIndex b pos of
         Empty -> return pos
         _     -> randomMove b
-
 
 computerMove :: Board -> IO (Board)
 computerMove b = 
@@ -168,42 +187,28 @@ computerMove b =
             return b'
     where pos = deterministicMove b
 
-
-showBoard :: Board -> IO ()
-showBoard (a,b,c,d,e,f,g,h,i) = do
-    putStrLn ("|" ++ show a ++ "|" ++ show b ++ "|" ++ show c ++ "|")
-    putStrLn ("|" ++ show d ++ "|" ++ show e ++ "|" ++ show f ++ "|")
-    putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
-
-
-userInput :: String -> IO String
-userInput s = do
-    putStrLn s
-    hFlush stdout
-    getLine
-
 -- computer agent
 runComputer :: Board -> IO()
 runComputer newBoard = do
     computerBoard <- computerMove newBoard
-    showBoard computerBoard
+    printBoard computerBoard
     case checkWin computerBoard of
         Just O -> putStrLn "Computer win"
-        _      -> startGameForTwo computerBoard False X  
+        _      -> startGame computerBoard False X  
 
--- Two players
-startGameForTwo :: Board -> Bool -> Symbol -> IO ()
-startGameForTwo board multiplePlayers symbol = do
+-- main recursive function of the game
+startGame :: Board -> Bool -> Symbol -> IO ()
+startGame board multiplePlayers symbol = do
     playermove <- userInput " Player 1 - Choose a number from 1 to 9: "
     let newBoard = makeMove board symbol $ read playermove
     case newBoard of
         Nothing -> do
             putStrLn "Not a valid move."
-            startGameForTwo board multiplePlayers symbol
+            startGame board multiplePlayers symbol
         Just newBoard -> do
             if multiplePlayers
                 then do
-                    showBoard newBoard
+                    printBoard newBoard
                 else do
                     putStr ""
             case checkWin newBoard of
@@ -212,7 +217,7 @@ startGameForTwo board multiplePlayers symbol = do
                         then do
                             putStrLn "Player 1 wins"
                         else do
-                            showBoard newBoard
+                            printBoard newBoard
                             putStrLn "You win"    
                 Just O -> do
                     putStrLn "Player 2 wins"
@@ -222,12 +227,12 @@ startGameForTwo board multiplePlayers symbol = do
                                     then do
                                         putStr ""
                                     else do
-                                        showBoard newBoard
+                                        printBoard newBoard
                                 putStrLn "No winner"
                             else do
                                 if multiplePlayers 
                                     then do 
-                                        startGameForTwo newBoard multiplePlayers $ changePlayer symbol
+                                        startGame newBoard multiplePlayers $ changePlayer symbol
                                     else do 
                                         runComputer newBoard
 
@@ -237,7 +242,7 @@ startGameForTwo board multiplePlayers symbol = do
 welcome :: IO()                                   
 welcome = do
     putStrLn "|7|8|9| \n|4|5|6|\n|1|2|3|\n"
-    showBoard emptyBoard
+    printBoard emptyBoard
 
 
 main = do
@@ -247,8 +252,8 @@ main = do
         1 -> do
             putStrLn "You have chosen two players"
             welcome
-            startGameForTwo emptyBoard True X
+            startGame emptyBoard True X
         2 -> do
             putStrLn "You have chosen to play against the computer"
             welcome
-            startGameForTwo emptyBoard False X
+            startGame emptyBoard False X
