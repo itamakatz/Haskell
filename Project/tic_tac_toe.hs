@@ -1,6 +1,7 @@
 import System.Random (randomRIO)
 import System.IO 
 import Data.Maybe
+import Text.Read (readMaybe)
 
 ------------------------ Symbol ------------------------ 
 
@@ -39,9 +40,11 @@ emptyBoard = (Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty)
 -- print the current state of the game
 printBoard :: Board -> IO ()
 printBoard (a,b,c,d,e,f,g,h,i) = do
+    putStrLn ("")
     putStrLn ("|" ++ show a ++ "|" ++ show b ++ "|" ++ show c ++ "|")
     putStrLn ("|" ++ show d ++ "|" ++ show e ++ "|" ++ show f ++ "|")
     putStrLn ("|" ++ show g ++ "|" ++ show h ++ "|" ++ show i ++ "|")
+    putStrLn ("")
 
 ------------------ General Functions ------------------ 
 
@@ -51,6 +54,10 @@ userInput s = do
     putStrLn s
     hFlush stdout
     getLine
+
+-- checks that user input is an Int
+readMaybeInt :: String -> Maybe Int
+readMaybeInt = readMaybe
 
 -- get symbol of the board for a given index
 getAtIndex :: Board -> Int -> Symbol
@@ -76,7 +83,6 @@ setAtIndex (a,b,c,d,e,_,g,h,i) symbol 6 = (a,b,c,d,e,symbol,g,h,i)
 setAtIndex (a,b,c,d,e,f,_,h,i) symbol 1 = (a,b,c,d,e,f,symbol,h,i)
 setAtIndex (a,b,c,d,e,f,g,_,i) symbol 2 = (a,b,c,d,e,f,g,symbol,i)
 setAtIndex (a,b,c,d,e,f,g,h,_) symbol 3 = (a,b,c,d,e,f,g,h,symbol)
- 
 
 -- Check when a player wins
 checkWin :: Board -> Maybe Symbol
@@ -103,14 +109,7 @@ checkWin _ = Nothing
 isTie :: Board -> Bool
 isTie (a,b,c,d,e,f,g,h,i) = (&&&) a $ (&&&) b  $ (&&&) c $ (&&&) d $ (&&&) e $ (&&&) f $ (&&&) g $ (&&&&) h i
 
--- update board after some players move
-makeMove :: Board -> Symbol -> Int -> Maybe Board
-makeMove board symbol index =
-    case getAtIndex board index of 
-        Empty -> Just $ setAtIndex board symbol index
-        _ -> Nothing
-
------------------ Computers Functions ----------------- 
+------------------ Computer Functions ------------------
 
 -- Computer attempts to make a winning move
 deterministicMove :: Board -> Maybe Int
@@ -167,7 +166,7 @@ deterministicMove (_,_,X,_,X,_,Empty,_,_) = Just 1
 
 deterministicMove (_,_,_,_,_,_,_,_,_) = Nothing
 
--- Makes a random move
+-- Makes a random move in case there is no deterministic move
 randomMove :: Board -> IO Int
 randomMove b = do
     pos <- randomRIO(1,9) 
@@ -175,85 +174,124 @@ randomMove b = do
         Empty -> return pos
         _     -> randomMove b
 
-computerMove :: Board -> IO (Board)
-computerMove b = 
+-- prints board after computers move and checks if the computer won
+finishComputerMove :: Board -> IO()
+finishComputerMove computerBoard = do 
+    printBoard computerBoard
+    case checkWin computerBoard of
+        Just O -> putStrLn " ----- Computer wins -----\n"
+        _      -> startGame computerBoard False X
+
+-- run computers agent
+runComputer :: Board -> IO ()
+runComputer b = do
+    let pos = deterministicMove b
     case pos of
         Nothing -> do
             pos1 <- randomMove b
-            let (Just b') = makeMove b O pos1
-            return b'
+            let (Just computerBoard) = makeMove b O pos1
+            finishComputerMove computerBoard
         _       -> do
-            let (Just b') = makeMove b O $ head $ catMaybes [pos]
-            return b'
-    where pos = deterministicMove b
+            let (Just computerBoard) = makeMove b O $ head $ catMaybes [pos]
+            finishComputerMove computerBoard 
 
--- computer agent
-runComputer :: Board -> IO()
-runComputer newBoard = do
-    computerBoard <- computerMove newBoard
-    printBoard computerBoard
-    case checkWin computerBoard of
-        Just O -> putStrLn "Computer win"
-        _      -> startGame computerBoard False X  
+------------------ Workflow Functions ------------------
+
+-- update board after some players move
+makeMove :: Board -> Symbol -> Int -> Maybe Board
+makeMove board symbol index =
+    case getAtIndex board index of 
+        Empty -> Just $ setAtIndex board symbol index
+        _ -> Nothing
 
 -- main recursive function of the game
 startGame :: Board -> Bool -> Symbol -> IO ()
 startGame board multiplePlayers symbol = do
-    playermove <- userInput " Player 1 - Choose a number from 1 to 9: "
-    let newBoard = makeMove board symbol $ read playermove
-    case newBoard of
+    playermove <- userInput "Player 1 - Choose a number from 1 to 9:"
+
+-- parse user input
+
+    case readMaybeInt playermove of
         Nothing -> do
-            putStrLn "Not a valid move."
+            putStrLn "\n*** Not a valid character. Please Choose a number ***\n"
             startGame board multiplePlayers symbol
-        Just newBoard -> do
-            if multiplePlayers
+        Just move -> do
+            if move > 9 || move < 1
                 then do
-                    printBoard newBoard
+                    putStrLn "\n*** Not a valid number. Please keep input between 1 to 9 ***\n"
+                    startGame board multiplePlayers symbol
                 else do
-                    putStr ""
-            case checkWin newBoard of
-                Just X -> do
-                    if multiplePlayers
-                        then do
-                            putStrLn "Player 1 wins"
-                        else do
-                            printBoard newBoard
-                            putStrLn "You win"    
-                Just O -> do
-                    putStrLn "Player 2 wins"
-                _      -> if isTie newBoard 
-                            then do
-                                if multiplePlayers
-                                    then do
-                                        putStr ""
-                                    else do
-                                        printBoard newBoard
-                                putStrLn "No winner"
-                            else do
-                                if multiplePlayers 
-                                    then do 
-                                        startGame newBoard multiplePlayers $ changePlayer symbol
-                                    else do 
-                                        runComputer newBoard
+                    let newBoard = makeMove board symbol $ move
+                    case newBoard of
+                        Nothing -> do
+                            putStrLn "\n*** Not a valid move. Please Choose an empty cell ***\n"
+                            startGame board multiplePlayers symbol
 
-
+-- update board, check the state of the game and continue to next move
+                        
+                        Just newBoard -> do
+                            if multiplePlayers
+                                then do
+                                    printBoard newBoard
+                                else do
+                                    putStr ""
+                            case checkWin newBoard of
+                                Just X -> do
+                                    if multiplePlayers
+                                        then do
+                                            putStrLn "----- Player 1 wins -----\n"
+                                        else do
+                                            printBoard newBoard
+                                            putStrLn "----- You win -----\n"    
+                                Just O -> do
+                                    putStrLn "----- Player 2 wins -----\n"
+                                _      -> if isTie newBoard 
+                                            then do
+                                                if multiplePlayers
+                                                    then do
+                                                        putStr ""
+                                                    else do
+                                                        printBoard newBoard
+                                                putStrLn "----- No winner -----\n"
+                                            else do
+                                                if multiplePlayers 
+                                                    then do 
+                                                        startGame newBoard multiplePlayers $ changePlayer symbol
+                                                    else do 
+                                                        runComputer newBoard
 
 -- Welcoming messages
-welcome :: IO()                                   
+welcome :: IO ()                                   
 welcome = do
-    putStrLn "|7|8|9| \n|4|5|6|\n|1|2|3|\n"
+    putStrLn "\n|7|8|9| \n|4|5|6|\n|1|2|3|"
     printBoard emptyBoard
 
+-- user enterd a invalid character
+invalidInput :: IO ()
+invalidInput = do
+    putStrLn "\n*** You have enterd an invalid character. Please choose 1 or 2. ***\n"
+    chooseGameType    
 
-main = do
-    putStrLn "Tic Tac Toe"
+-- chooses a game and checks user input is correct 
+chooseGameType :: IO ()
+chooseGameType = do
     playermove <- userInput "Choose 1 for two players, or 2 for player Vs computer"
-    case (read playermove) of
-        1 -> do
-            putStrLn "You have chosen two players"
+    case readMaybeInt playermove of
+        Just 1 -> do
+            putStrLn "\n----- You have chosen two players -----"
             welcome
             startGame emptyBoard True X
-        2 -> do
-            putStrLn "You have chosen to play against the computer"
+        Just 2 -> do
+            putStrLn "\n----- You have chosen to play against the computer -----"
             welcome
             startGame emptyBoard False X
+        Nothing -> do
+            invalidInput
+        Just _ -> do
+            invalidInput
+
+main = do
+    putStrLn "\n-----------------------"
+    putStrLn "----- Tic Tac Toe -----"
+    putStrLn "-----------------------\n"
+    chooseGameType
