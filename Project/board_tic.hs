@@ -42,20 +42,19 @@ data Board a = Board a a a a a a a a a
 --               | MyFilledNode a (MyTree a) (MyTree a)
 --               deriving (Show)
 
--- instance Functor MyTree where
---   fmap = liftM
+instance Functor Board where
+  fmap = liftM
 
--- instance Applicative MyTree where
---   pure  = return
---   (<*>) = ap
+instance Applicative Board where
+  pure  = return
+  (<*>) = ap
 
--- instance Monad MyTree where
---    return x = MyFilledNode x MyEmptyNode MyEmptyNode
---    (MyFilledNode x y z) >>= f = f x
---    MyEmptyNode >>= _ = MyEmptyNode
+instance Monad Board where
+    return a = Board a a a a a a a a a
+    (Board a b c d e f g h i) >>= f' = f' a
 
 emptyBoard :: Board Symbol
-emptyBoard = Board Empty Empty Empty Empty Empty Empty Empty Empty Empty
+emptyBoard = return Empty
 
 -- print the current state of the game
 printBoard :: Board Symbol -> IO ()
